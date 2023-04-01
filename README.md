@@ -363,16 +363,9 @@ TSS calling from bam files or retrieving TSS data from TSS table
   Similarly, the detailed information of consensus clusters can be exported to delimited text files with "exportClustersTable" function or bedGraph files with "exportClustersToBed" fucntion. 
 
         exportClustersTable(myTSSr, data = "consensusClusters")
-        exportClustersToBed(myTSSr, data = "consensusClusters")	
+        exportClustersToBed(myTSSr, data = "consensusClusters", assigned = FALSE)	
 
 * Quantification of core promoter shape
-
-  Core promoter shape reflects the distribution of TSS signals within a core promoter. TSSr provides three different options, inter-quantile width, promoter shape score (PSS) and shape index (SI), to quantify core promoter shape. Inter-quantile width refers to the distance between the locations of the 10th percentile to the 90th percentile TSS signals within a TSS cluster.  Thus, it measures the width of a core promoter, but lacks the information of distribution patterns of TSS signals within a core promoter. Inter-quantile width could be significantly affected by different clustering methods. plotInterQuantile function plots interquantile width of each sample.
-
-        plotInterQuantile(myTSSr,samples = "all",tagsThreshold = 1)
-  
-
-![03_Interquantile_plot_of_ALL_samples](https://github.com/Linlab-slu/TSSr/raw/master/vignettes/figures/03_Interquantile_plot_of_ALL_samples_v2.png)
 
   Promoter shape score (PSS) integrates both inter quantile width and the observed probabilities of tags at every TSSs within a cluster (Lu and Lin 2019). PSS can be calculated using using shapeCluster function with method set as “PSS”. The smaller value represents the sharper core promoter. PSS is 0 representing singletons. SI is determined by the probabilities of tags at every TSSs within one cluster (Hoskins, Landolin et al. 2011). SI is also calculated using shapeCluster function with method set as “SI”. The greater value represents the sharper core promoter. The SI = 2 represents singletons. 
     
@@ -413,6 +406,13 @@ TSS calling from bam files or retrieving TSS data from TSS table
         plotShape(myTSSr)
 
 ![04_Shape_plot_of_ALL_samples](https://github.com/Linlab-slu/TSSr/raw/master/vignettes/figures/04_Shape_plot_of_ALL_samples_v2.png)
+
+  Core promoter shape reflects the distribution of TSS signals within a core promoter. TSSr provides three different options, inter-quantile width, promoter shape score (PSS) and shape index (SI), to quantify core promoter shape. Inter-quantile width refers to the distance between the locations of the 10th percentile to the 90th percentile TSS signals within a TSS cluster.  Thus, it measures the width of a core promoter, but lacks the information of distribution patterns of TSS signals within a core promoter. Inter-quantile width could be significantly affected by different clustering methods. plotInterQuantile function plots interquantile width of each sample.
+
+        plotInterQuantile(myTSSr,samples = "all",tagsThreshold = 1)
+  
+
+![03_Interquantile_plot_of_ALL_samples](https://github.com/Linlab-slu/TSSr/raw/master/vignettes/figures/03_Interquantile_plot_of_ALL_samples_v2.png)
 
    The complete list of PSS can be exported to delimited text file with "exportShapeTable" function. 
 
