@@ -92,7 +92,7 @@ conda create -n tssr -f tssr.yml
 To install the TSSr package all the prerequisites above need to be installed.
 After confirming those packages are installed, you can install the development version directly from GitHub using devtools:
 
-        devtools::install_github("Linlab-slu/TSSr", build_vignettes = TRUE)
+        devtools::install_github("Linlab-slu/TSSr", build_vignettes = FALSE)
 
 ## 4. Input data for TSSr
 
