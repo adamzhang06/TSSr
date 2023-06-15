@@ -47,6 +47,7 @@ Documentation is also available on GitHub Pages: https://github.com/Linlab-slu/T
   * install the packages by using the following R command:
 
     ```R
+    install.packages("devtools")
     if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
     BiocManager::install("Rsamtools")
