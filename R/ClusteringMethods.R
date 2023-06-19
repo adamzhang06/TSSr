@@ -60,7 +60,7 @@ setMethod("clusterTSS",signature(object = "TSSr"), function(object, method, peak
     }
     print(paste("process is running on", numCores, "cores..."))
     ##separate tss table by sampleLables
-    cs <- lapply(as.list(seq(sampleLabelsMerged)), function(i){
+    cs <- mclapply(as.list(seq(sampleLabelsMerged)), function(i){
       temp <- tss.dt[,.SD, .SDcols = c("chr","pos","strand",sampleLabelsMerged[i])]
       setnames(temp, colnames(temp)[[4]], "tags")
       temp <- temp[tags >0,]
