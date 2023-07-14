@@ -60,7 +60,7 @@ setMethod("clusterTSS",signature(object = "TSSr"), function(object, method, peak
     }
     print(paste("process is running on", numCores, "cores..."))
     ##separate tss table by sampleLables
-    cs <- mclapply(as.list(seq(sampleLabelsMerged)), function(i){
+    cs <- lapply(as.list(seq(sampleLabelsMerged)), function(i){
       temp <- tss.dt[,.SD, .SDcols = c("chr","pos","strand",sampleLabelsMerged[i])]
       setnames(temp, colnames(temp)[[4]], "tags")
       temp <- temp[tags >0,]
@@ -73,6 +73,10 @@ setMethod("clusterTSS",signature(object = "TSSr"), function(object, method, peak
         if(method == "peakclu"){
           cluster.data <- .clusterByPeak(tss, peakDistance, localThreshold, extensionDistance)
         }
+        if(method == "peakcluMax"){
+          cluster.data <- .clusterByPeakMax(tss, peakDistance, localThreshold, extensionDistance)
+        }
+        return(cluster.data)
       }, mc.cores = numCores)
       tss.clusters <- rbindlist(clusters, use.names=TRUE, fill=TRUE)
       tss.clusters <- tss.clusters[tags >clusterThreshold,]
@@ -94,6 +98,10 @@ setMethod("clusterTSS",signature(object = "TSSr"), function(object, method, peak
         if(method == "peakclu"){
           cluster.data <- .clusterByPeak(tss, peakDistance, localThreshold, extensionDistance)
         }
+        if(method == "peakcluMax"){
+          cluster.data <- .clusterByPeakMax(tss, peakDistance, localThreshold, extensionDistance)
+        }
+        return(cluster.data)
       })
       tss.clusters <- rbindlist(clusters, use.names=TRUE, fill=TRUE)
       tss.clusters <- tss.clusters[tags >clusterThreshold,]
