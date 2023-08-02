@@ -31,15 +31,17 @@ setGeneric("getTSS",function(object
                              ,mappingQualityThreshold = 20
                              ,softclippingAllowed = FALSE
                              ,useMultiCore=FALSE
-                             ,numCores=NULL)standardGeneric("getTSS"))
+                             ,numCores=NULL
+                             ,readsPerPiece=1000000)standardGeneric("getTSS"))
 #' @rdname getTSS
 #' @export
 setMethod("getTSS",signature(object = "TSSr"), function(object
-                                    ,sequencingQualityThreshold
-                                    ,mappingQualityThreshold
-                                    ,softclippingAllowed
-                                    ,useMultiCore
-                                    ,numCores){
+                                                        ,sequencingQualityThreshold
+                                                        ,mappingQualityThreshold
+                                                        ,softclippingAllowed
+                                                        ,useMultiCore
+                                                        ,numCores
+                                                        ,readsPerPiece){
   ##initialize values
   Genome <- .getGenome(object@genomeName)
   sampleLabels <- object@sampleLabels
@@ -49,33 +51,34 @@ setMethod("getTSS",signature(object = "TSSr"), function(object
   }
   objName <- deparse(substitute(object))
   if(inputFilesType == "bam" | inputFilesType == "bamPairedEnd"){
-
-#### MULTICORE CODE STARTS HERE (only for BAM files for now) ####
-
+    
+    #### MULTICORE CODE STARTS HERE (only for BAM files for now) ####
+    
     if(useMultiCore) {
       if (is.null(numCores)) {
-         numCores <- detectCores()
+        numCores <- detectCores()
       }
       print(paste("process is running on", numCores, "cores..."))      
-    
+      
       inputFilesID_forMultiCore <- as.list(c(1:length(object@inputFiles)))
-
+      
       results <- mclapply(inputFilesID_forMultiCore
                           ,function(x) {
                             tssMC <- .getTSS_from_bam(object@inputFiles[x]
-                            ,Genome
-                            ,sampleLabels[x]
-                            ,inputFilesType
-                            ,sequencingQualityThreshold
-                            ,mappingQualityThreshold
-                            ,softclippingAllowed)
+                                                      ,Genome
+                                                      ,sampleLabels[x]
+                                                      ,inputFilesType
+                                                      ,sequencingQualityThreshold
+                                                      ,mappingQualityThreshold
+                                                      ,softclippingAllowed
+                                                      ,readsPerPiece)
                           }
                           ,mc.cores = numCores)
-
-#### MERGE THE TABLES FROM SEPARATE CORES ####
-
-    tss <- NULL
-    
+      
+      #### MERGE THE TABLES FROM SEPARATE CORES ####
+      
+      tss <- NULL
+      
       for (i in results) {
         if (is.null(tss)) {
           tss = i
@@ -83,29 +86,36 @@ setMethod("getTSS",signature(object = "TSSr"), function(object
           tss = merge(tss, i, by = c("chr", "pos", "strand"),all=TRUE)
         }
       }
-    
-    tss=tss[order(tss$chr, tss$pos),]
-
-    tss[is.na(tss)] = 0
-
-#### END OF MERGE ####
-
-#### MULTICORE CODE ENDS HERE ####
-
+      
+      tss=tss[order(tss$chr, tss$pos),]
+      
+      tss[is.na(tss)] = 0
+      
+      #### END OF MERGE ####
+      
+      #### MULTICORE CODE ENDS HERE ####
+      
     } else {
-
-#### original code if useMultiCore is FALSE ####
-
-    tss <- .getTSS_from_bam(object@inputFiles
-                     ,Genome
-                     ,sampleLabels
-                     ,inputFilesType
-                     ,sequencingQualityThreshold
-                     ,mappingQualityThreshold
-                     ,softclippingAllowed)
-
+      
+      #### original code if useMultiCore is FALSE ####
+      
+      if (readsPerPiece == 'auto'){
+        readsPerPieceToUse <- .get_readsPerPiece()
+      }else{
+        readsPerPieceToUse <- readsPerPiece
+      }
+      
+      tss <- .getTSS_from_bam(object@inputFiles
+                              ,Genome
+                              ,sampleLabels
+                              ,inputFilesType
+                              ,sequencingQualityThreshold
+                              ,mappingQualityThreshold
+                              ,softclippingAllowed
+                              ,readsPerPieceToUse)
+      
     } #### end of else
-
+    
   }else if(inputFilesType == "bed"){
     tss <- .getTSS_from_bed(object@inputFiles, Genome, sampleLabels)
   }else if(inputFilesType == "BigWig"){
@@ -115,16 +125,15 @@ setMethod("getTSS",signature(object = "TSSr"), function(object
   }else if(inputFilesType == "TSStable"){
     tss <- .getTSS_from_TSStable(object@inputFiles, sampleLabels)
   }
-
-#################################################################################
-
+  
+  #################################################################################
+  
   setorder(tss, "strand","chr","pos")
   # get library sizes
   object@librarySizes <- colSums(tss[,4:ncol(tss), drop = FALSE], na.rm = TRUE)
-
+  
   object@TSSrawMatrix <- tss
   object@TSSprocessedMatrix <- tss
   assign(objName, object, envir = parent.frame())
 })
-
 

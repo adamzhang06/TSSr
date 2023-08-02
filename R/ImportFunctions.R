@@ -13,7 +13,8 @@
 .getTSS_from_bam <- function(bam.files, Genome, sampleLabels, inputFilesType
                              ,sequencingQualityThreshold
                              ,mappingQualityThreshold
-                             ,softclippingAllowed){
+                             ,softclippingAllowed
+                             ,readsPerPieceToUse){
   ##define variable as a NULL value
   chr = pos = tag_count = strand = NULL
   
@@ -33,17 +34,19 @@
     message("\nReading in file: ", bam.files[i], "...")
     #bam <- scanBam(bam.files[i], param = param)
 
+    ####
     
-    ##############################################################
     #bam to TSS start
+    
+    mem1 <- mem_used()
+    cat("before reading:", mem1, "\n")
     
     bamFile <- BamFile(bam.files[i])
     
-    n <- 1000000
-    yieldSize(bamFile) <- n
+    yieldSize(bamFile) <- readsPerPieceToUse
     
     records <- countBam(bamFile)
-    records <- as.integer(records$records/n) + 1
+    records <- as.integer(records$records/readsPerPieceToUse) + 1
     
     open(bamFile)
     
@@ -53,7 +56,7 @@
       
       bami <- scanBam(bamFile)
       
-      tssi <- bam_to_TSS(bami, Genome
+      tssi <- .bam_to_TSS(bami, Genome
                          ,sequencingQualityThreshold
                          ,mappingQualityThreshold
                          ,softclippingAllowed
@@ -64,6 +67,12 @@
       } else {
         TSS <-  rbind(TSS, tssi)
       }
+      
+      mem2 <- mem_used()
+      cat("reading piece:", j, mem2, "\n")
+      
+      cat("memory change:", mem2 - mem1, "\n")
+
     }
     
     close(bamFile)
@@ -72,7 +81,7 @@
     
     TSS <- TSS [, as.integer(sum(tag_count)), by = list(chr, pos, strand)]
     
-    #####################################################################
+    #####
     
     
     setnames(TSS, c("chr", "pos", "strand", sampleLabels[i]))
@@ -267,7 +276,7 @@
 #################################################################################
 ##.bam_to_TSS
 
-bam_to_TSS <- function(bam, Genome
+.bam_to_TSS <- function(bam, Genome
                        ,sequencingQualityThreshold
                        ,mappingQualityThreshold
                        ,softclippingAllowed
@@ -348,5 +357,101 @@ bam_to_TSS <- function(bam, Genome
   }
   return(TSS)
 }
+
+#################################################################################
+##.get_readsPerPiece
+
+.get_readsPerPiece <- function(){
   
+  sysInfo <- Sys.info()
   
+  if (!is.null(sysInfo)){
+    OS <- sysInfo['sysname']
+  }
+  
+  #windows
+  if (OS == "Windows"){
+    
+    cmd <- "wmic OS get FreePhysicalMemory /Value"
+    output <- system2("cmd", args = c("/c", cmd), stdout = TRUE)
+    available_memory <- as.numeric(gsub("\\D", "", output))  # Extract numeric value from the output
+    available_memory <- na.omit(available_memory)
+    
+    # Convert to gigabytes
+    available_memory_gb <- available_memory[1] / (1024^2)
+    cat(available_memory_gb, "GB of memory available on your Windows machine", "\n")
+    
+    
+    if (available_memory_gb <= 6){
+      readsPerPieceLocal <- 24000000
+    }
+    
+    if (available_memory_gb <= 5){
+      readsPerPieceLocal <- 20000000
+    }
+    
+    if (available_memory_gb <= 4){
+      readsPerPieceLocal <- 16000000
+    }
+    
+    if (available_memory_gb <= 3){
+      readsPerPieceLocal <- 12000000
+    }
+    
+    if (available_memory_gb <= 2){
+      readsPerPieceLocal <- 8000000
+    }
+    
+    if (available_memory_gb <= 1){
+      readsPerPieceLocal <- 4000000
+    }
+    
+    readsPerPieceLocal <- format(readsPerPieceLocal, scientific = FALSE)
+    cat("readsPerPiece is", readsPerPieceLocal, "using roughly", floor(available_memory_gb), "GB of memory", "\n")
+    
+    return(as.numeric(readsPerPieceLocal))
+    
+  }
+  
+  #linux
+  if (OS == 'Linux'){
+    
+    cmd <- "free -b | grep 'Mem:' | awk '{print $7}'"
+    available_memory <- as.numeric(system2("bash", args = c("-c", cmd), stdout = TRUE))
+    available_memory <- na.omit(available_memory)
+    
+    # Convert to gigabytes
+    available_memory_gb <- available_memory[1] / (1024^3)
+    cat(available_memory_gb, "GB of memory available on your Linux machine", "\n")
+    
+    if (available_memory_gb <= 6){
+      readsPerPieceLocal <- 24000000
+    }
+    
+    if (available_memory_gb <= 5){
+      readsPerPieceLocal <- 20000000
+    }
+    
+    if (available_memory_gb <= 4){
+      readsPerPieceLocal <- 16000000
+    }
+    
+    if (available_memory_gb <= 3){
+      readsPerPieceLocal <- 12000000
+    }
+    
+    if (available_memory_gb <= 2){
+      readsPerPieceLocal <- 8000000
+    }
+    
+    if (available_memory_gb <= 1){
+      readsPerPieceLocal <- 4000000
+    }
+    
+    readsPerPieceLocal <- format(readsPerPieceLocal, scientific = FALSE)
+    cat("readsPerPiece is", readsPerPieceLocal, "using roughly", floor(available_memory_gb), "GB of memory", "\n")
+    
+    return(as.numeric(readsPerPieceLocal))
+    
+  }
+}
