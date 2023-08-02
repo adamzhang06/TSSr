@@ -60,6 +60,12 @@ setMethod("getTSS",signature(object = "TSSr"), function(object
       }
       print(paste("process is running on", numCores, "cores..."))      
       
+      if (readsPerPiece == 'auto'){
+        readsPerPieceToUse <- .get_readsPerPiece()
+      }else{
+        readsPerPieceToUse <- readsPerPiece
+      }
+      
       inputFilesID_forMultiCore <- as.list(c(1:length(object@inputFiles)))
       
       results <- mclapply(inputFilesID_forMultiCore
@@ -71,7 +77,7 @@ setMethod("getTSS",signature(object = "TSSr"), function(object
                                                       ,sequencingQualityThreshold
                                                       ,mappingQualityThreshold
                                                       ,softclippingAllowed
-                                                      ,readsPerPiece)
+                                                      ,readsPerPieceToUse)
                           }
                           ,mc.cores = numCores)
       
