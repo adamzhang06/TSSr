@@ -390,7 +390,7 @@
     available_memory <- na.omit(available_memory)
     
     # Convert to gigabytes
-    available_memory_gb <- available_memory[1] / (1024^3)
+    available_memory_gb <- available_memory[1] / (1024^2)
     cat(available_memory_gb, "GB of memory available on your Linux machine", "\n")
   }
 
