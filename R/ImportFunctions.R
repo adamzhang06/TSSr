@@ -380,41 +380,10 @@
     # Convert to gigabytes
     available_memory_gb <- available_memory[1] / (1024^2)
     cat(available_memory_gb, "GB of memory available on your Windows machine", "\n")
-    
-    
-    if (available_memory_gb <= 6){
-      readsPerPieceLocal <- 24000000
-    }
-    
-    if (available_memory_gb <= 5){
-      readsPerPieceLocal <- 20000000
-    }
-    
-    if (available_memory_gb <= 4){
-      readsPerPieceLocal <- 16000000
-    }
-    
-    if (available_memory_gb <= 3){
-      readsPerPieceLocal <- 12000000
-    }
-    
-    if (available_memory_gb <= 2){
-      readsPerPieceLocal <- 8000000
-    }
-    
-    if (available_memory_gb <= 1){
-      readsPerPieceLocal <- 4000000
-    }
-    
-    readsPerPieceLocal <- format(readsPerPieceLocal, scientific = FALSE)
-    cat("readsPerPiece is", readsPerPieceLocal, "using roughly", floor(available_memory_gb), "GB of memory", "\n")
-    
-    return(as.numeric(readsPerPieceLocal))
-    
   }
   
   #linux
-  if (OS == 'Linux'){
+  if (OS != 'Windows'){
     
     cmd <- "free -b | grep 'Mem:' | awk '{print $7}'"
     available_memory <- as.numeric(system2("bash", args = c("-c", cmd), stdout = TRUE))
@@ -423,35 +392,13 @@
     # Convert to gigabytes
     available_memory_gb <- available_memory[1] / (1024^3)
     cat(available_memory_gb, "GB of memory available on your Linux machine", "\n")
-    
-    if (available_memory_gb <= 6){
-      readsPerPieceLocal <- 24000000
-    }
-    
-    if (available_memory_gb <= 5){
-      readsPerPieceLocal <- 20000000
-    }
-    
-    if (available_memory_gb <= 4){
-      readsPerPieceLocal <- 16000000
-    }
-    
-    if (available_memory_gb <= 3){
-      readsPerPieceLocal <- 12000000
-    }
-    
-    if (available_memory_gb <= 2){
-      readsPerPieceLocal <- 8000000
-    }
-    
-    if (available_memory_gb <= 1){
-      readsPerPieceLocal <- 4000000
-    }
-    
-    readsPerPieceLocal <- format(readsPerPieceLocal, scientific = FALSE)
-    cat("readsPerPiece is", readsPerPieceLocal, "using roughly", floor(available_memory_gb), "GB of memory", "\n")
-    
-    return(as.numeric(readsPerPieceLocal))
-    
   }
+
+  readsPerPieceLocal <- as.integer(available_memory_gb * 0.8 / 0.3 * 1000000)
+  
+  readsPerPieceLocal <- format(readsPerPieceLocal, scientific = FALSE)
+  cat("readsPerPiece is", readsPerPieceLocal, "\n")
+  
+  return(as.numeric(readsPerPieceLocal))
+  
 }
