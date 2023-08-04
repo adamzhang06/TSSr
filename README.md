@@ -63,14 +63,11 @@ Documentation is also available on GitHub Pages: https://github.com/Linlab-slu/T
 
 - [stringr](https://cran.r-project.org/web/packages/stringr/index.html)
 
-- [pryr](https://cran.r-project.org/web/packages/pryr/index.html)
-
     - install the packages by using the following R command:
 
     ```R
     install.packages("data.table")
     install.packages("stringr")
-    install.packages("pryr")
     ```
 
 ### Or you can install this packages by conda easily:
