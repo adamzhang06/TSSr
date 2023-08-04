@@ -38,9 +38,6 @@
     
     #bam to TSS start
     
-    mem1 <- mem_used()
-    cat("before reading:", mem1, "\n")
-    
     bamFile <- BamFile(bam.files[i])
     
     yieldSize(bamFile) <- readsPerPieceToUse
@@ -67,11 +64,6 @@
       } else {
         TSS <-  rbind(TSS, tssi)
       }
-      
-      mem2 <- mem_used()
-      cat("reading piece:", j, mem2, "\n")
-      
-      cat("memory change:", mem2 - mem1, "\n")
 
     }
     
